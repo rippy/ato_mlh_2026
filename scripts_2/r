@@ -1,4 +1,0 @@
-#!/usr/bin/env bash
-
-python3 fetch_data.py && python3 gf_map.py
-

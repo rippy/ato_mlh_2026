@@ -501,10 +501,13 @@ html,body,#map{height:100%;margin:0}
 .legend i{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:6px;vertical-align:-1px}
 .restaurants{display:flex;flex:1 1 auto;min-height:0;flex-direction:column;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid #ddd}
 .restaurants h2{margin:0 0 4px;font-size:14px;line-height:1.4}
-.restaurants ul{flex:1 1 auto;min-height:0;overflow-y:scroll;overscroll-behavior:contain;margin:0;padding:0;list-style:none;scrollbar-color:#777 #e5e7eb;scrollbar-width:auto}
-.restaurants ul::-webkit-scrollbar{width:10px}
-.restaurants ul::-webkit-scrollbar-track{background:#e5e7eb;border-radius:5px}
-.restaurants ul::-webkit-scrollbar-thumb{background:#777;border:2px solid #e5e7eb;border-radius:5px}
+.restaurant-list-wrap{display:flex;flex:1 1 auto;min-height:0;gap:5px}
+.restaurants ul{flex:1 1 auto;min-width:0;min-height:0;overflow-y:auto;overscroll-behavior:contain;margin:0;padding:0;list-style:none;scrollbar-width:none}
+.restaurants ul::-webkit-scrollbar{display:none;width:0}
+.restaurant-scrollbar{position:relative;flex:0 0 12px;min-height:28px;margin:3px 0;border:1px solid #9ca3af;border-radius:7px;background:#e5e7eb;cursor:pointer;touch-action:none}
+.restaurant-scrollbar-thumb{position:absolute;top:0;left:1px;width:8px;min-height:26px;border-radius:5px;background:#555;cursor:grab}
+.restaurant-scrollbar-thumb:hover{background:#333}
+.restaurant-scrollbar-thumb:active{cursor:grabbing}
 .restaurants li{margin:0}
 .restaurant-button{display:flex;width:100%;align-items:center;justify-content:space-between;gap:8px;padding:3px 0;border:0;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}
 .restaurant-button:hover{text-decoration:underline}
@@ -568,7 +571,11 @@ legend.onAdd = () => {
     const title = document.createElement('h2');
     title.textContent = 'Gluten Free Restaurants';
     restaurants.appendChild(title);
+    const listWrap = document.createElement('div');
+    listWrap.className = 'restaurant-list-wrap';
     const list = document.createElement('ul');
+    list.tabIndex = 0;
+    list.setAttribute('aria-label', 'Gluten-free restaurants sorted by status and score');
     const statusRank = {yes: 0, limited: 1};
     const rankedPins = PINS.map((pin, index) => ({pin, index})).sort((a, b) => {
         const aStatus = statusRank[a.pin.gf_status] ?? 2;
@@ -609,8 +616,47 @@ legend.onAdd = () => {
         item.appendChild(button);
         list.appendChild(item);
     });
-    restaurants.appendChild(list);
+        const scrollbar = document.createElement('div');
+        scrollbar.className = 'restaurant-scrollbar';
+        scrollbar.setAttribute('aria-hidden', 'true');
+        const thumb = document.createElement('div');
+        thumb.className = 'restaurant-scrollbar-thumb';
+        scrollbar.appendChild(thumb);
+        const updateScrollbar = () => {
+            const trackHeight = scrollbar.clientHeight;
+            const scrollRange = list.scrollHeight - list.clientHeight;
+            const thumbHeight = Math.min(trackHeight, Math.max(28, trackHeight * list.clientHeight / list.scrollHeight));
+            const thumbRange = trackHeight - thumbHeight;
+            thumb.style.height = `${thumbHeight}px`;
+            thumb.style.transform = `translateY(${scrollRange > 0 ? thumbRange * list.scrollTop / scrollRange : 0}px)`;
+        };
+        let dragStartY = 0;
+        let dragStartScroll = 0;
+        thumb.addEventListener('pointerdown', event => {
+            event.preventDefault();
+            dragStartY = event.clientY;
+            dragStartScroll = list.scrollTop;
+            thumb.setPointerCapture(event.pointerId);
+        });
+        thumb.addEventListener('pointermove', event => {
+            if (!thumb.hasPointerCapture(event.pointerId)) return;
+            const thumbRange = scrollbar.clientHeight - thumb.offsetHeight;
+            const scrollRange = list.scrollHeight - list.clientHeight;
+            if (thumbRange > 0) {
+                list.scrollTop = dragStartScroll + (event.clientY - dragStartY) * scrollRange / thumbRange;
+            }
+        });
+        scrollbar.addEventListener('pointerdown', event => {
+            if (event.target === thumb) return;
+            const bounds = scrollbar.getBoundingClientRect();
+            list.scrollTop = ((event.clientY - bounds.top) / bounds.height) * list.scrollHeight - list.clientHeight / 2;
+        });
+        list.addEventListener('scroll', updateScrollbar);
+        listWrap.appendChild(list);
+        listWrap.appendChild(scrollbar);
+        restaurants.appendChild(listWrap);
     d.insertBefore(restaurants, d.firstChild);
+        requestAnimationFrame(updateScrollbar);
   return d;
 };
 legend.addTo(map);
