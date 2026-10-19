@@ -23,7 +23,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 CSV_PATH = os.path.join(HERE, "annotations.csv")
-UA = "gf-finder-hackathon/0.1 (human verification; contact jkrippy@gmail.com)"
+UA = "gf-finder-hackathon/0.1 (human verification; https://github.com/rippy/ato_mlh_2026)"
 LOCK = threading.Lock()
 CTX_CACHE = {}
 
