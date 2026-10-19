@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gluten-free near the Raleigh Convention Center</title>
+<link rel="stylesheet" href="data/vendor/leaflet.css">
+<style>
+html,body,#map{height:100%;margin:0}
+.legend{background:#fff;color:#111;padding:8px 10px;border-radius:6px;font:13px/1.6 system-ui,sans-serif;box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+</style></head><body><div id="map"></div>
+<script src="data/vendor/leaflet.js"></script>
+<script>
+const CENTER = [35.7776, -78.6393], RADIUS = 1200, PINS = [], LEGEND = [["#1a9850", "Good: score 90+ and no violations in the last 12 months (0)"], ["#f59e0b", "Mixed: recent violations, or score 80-89 (0)"], ["#d73027", "Poor: latest score under 80 (0)"], ["#6b7280", "No county match or no inspection data (0)"]];
+const map = L.map('map').setView(CENTER, 15);
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 19,
+  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+}).addTo(map);
+const ring = L.circle(CENTER, {radius: RADIUS, color: '#2563eb', weight: 1, fillOpacity: 0.04}).addTo(map);
+L.circleMarker(CENTER, {radius: 8, color: '#fff', weight: 2, fillColor: '#2563eb', fillOpacity: 1})
+  .addTo(map).bindTooltip('Raleigh Convention Center', {permanent: true, direction: 'top'});
+PINS.forEach(p => L.circleMarker([p.lat, p.lon],
+  {radius: 10, color: '#fff', weight: 2, fillColor: p.color, fillOpacity: 0.95})
+  .addTo(map).bindPopup(p.popup));
+map.fitBounds(ring.getBounds());
+const legend = L.control({position: 'bottomright'});
+legend.onAdd = () => {
+  const d = L.DomUtil.create('div', 'legend');
+  d.innerHTML = LEGEND.map(l => `<div><i style="background:${l[0]}"></i>${l[1]}</div>`).join('');
+  return d;
+};
+legend.addTo(map);
+</script></body></html>

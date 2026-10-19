@@ -41,6 +41,34 @@ Our project:
 * <https://gemini.google.com/app>
 * <https://claude.ai/new>
 
+Data Links
+
+* <https://data.raleighnc.gov/>
+* <https://www.openstreetmap.org/>
+
+Ideas
+
+* Density maps for good options for gluten-free options, vegan, etc (to help find a good place to live)
+
+## MVP Idea
+
+* Cookies or Session Local to record your address, to help with lookups
+
+## APIs
+
+### APIs: From Haiku
+
+### APIs: From Beckers
+
+Three datasets:  
+
+* Restaurants evaulated in Wake County, has info on where it is located, and has the HSISIDD to match to the other datasets
+  * Set of results by Postal Code and find close to you
+* Food Inspections by Date
+* Food Inspection Violations the Violations found
+  * Trending up, trending down, how long ago, etc
+  * Immuno compromised will probably not want poor scores
+
 ## DigitalOcean
 
 * With the credits, can use open weight models cheaply
