@@ -10,16 +10,16 @@ health-inspection results. Every gluten-free claim shows its evidence and whethe
 
 ## Data Sources
 
-- Raleigh Open Data Restaurants and Inspections: https://data-ral.opendata.arcgis.com/
-- Open Street Map: https://www.openstreetmap.org/#map=4/38.01/-95.84
+* Raleigh Open Data Restaurants and Inspections: <https://data-ral.opendata.arcgis.com/>
+* Open Street Map: <https://www.openstreetmap.org/#map=4/38.01/-95.84>
 
 ## The problem
 
 Allergy-friendly food is hard to find, and the open data doesn't help:
 
-- **OpenStreetMap has almost no gluten-free data.** Only 1 place within 8 km of the Convention Center has a
+* **OpenStreetMap has almost no gluten-free data.** Only 1 place within 8 km of the Convention Center has a
   `diet:gluten_free` tag.
-- **Wake County publishes good health data**: ~430 permitted food places within 3 km, plus inspection
+* **Wake County publishes good health data**: ~430 permitted food places within 3 km, plus inspection
   scores and violations, joined by `HSISID`.
 
 So the map needs an annotation layer on top of the open data. That layer is `scripts/annotations.csv`.
@@ -146,11 +146,11 @@ Solid outline = human-verified. Dashed outline = unverified.
 
 ### Trust rules
 
-- human-verified > OSM tag > unverified
-- Machine output is never marked verified.
-- Human rows are never overwritten by a re-run (`enrich_menu.py --redo` only touches machine rows).
-- PDF or JavaScript-only menus become "unknown", not guesses.
-- We are polite to restaurant sites: identified User-Agent, 1 second pause, at most 2 extra pages per site.
+* human-verified > OSM tag > unverified
+* Machine output is never marked verified.
+* Human rows are never overwritten by a re-run (`enrich_menu.py --redo` only touches machine rows).
+* PDF or JavaScript-only menus become "unknown", not guesses.
+* We are polite to restaurant sites: identified User-Agent, 1 second pause, at most 2 extra pages per site.
 
 ## Run it
 
@@ -201,14 +201,18 @@ endpoint, e.g. a local Ollama model via `LLM_BASE`).
 
 ## What's next
 
-- More allergens (nut, dairy, shellfish) using the same evidence-and-verification model.
-- Pushing human-verified tags back to OpenStreetMap so everyone benefits.
-- Volunteer annotation: the verification UI could run as a hosted page.
-- An open-weight model (Ollama) for the machine pass.
+* More allergens (nut, dairy, shellfish) using the same evidence-and-verification model.
+* Pushing human-verified tags back to OpenStreetMap so everyone benefits.
+* Volunteer annotation: the verification UI could run as a hosted page.
+* An open-weight model (Ollama) for the machine pass.
 
 ## Team
 
 Jonathan Rippy and Rebekah Callari-Kaczmarczyk.
+
+MLH Project Submission:
+
+* [ATO: GLUTEN FREE FINDER](https://www.mlh.com/events/hacktoberfest-hacks-all-things-open/submissions/01a1554e-b384-74d0-ea0e-ec657751134c)
 
 ## Licence and attribution
 
@@ -216,17 +220,17 @@ Code: MIT, see [LICENSE](LICENSE).
 
 Data and libraries we use, and who owns them:
 
-- **Map data and tiles:** (c) [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors, available under the
+* **Map data and tiles:** (c) [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors, available under the
   [Open Database Licence (ODbL)](https://opendatacommons.org/licenses/odbl/). Our cached `scripts/data/osm.json` is
   derived from OSM and stays under ODbL. Tiles are loaded from `tile.openstreetmap.org` under the
   [OSM tile usage policy](https://operations.osmfoundation.org/policies/tiles/).
-- **Restaurants, health inspections and violations:** [Wake County, NC](https://data.wake.gov/) (Wake County GIS /
+* **Restaurants, health inspections and violations:** [Wake County, NC](https://data.wake.gov/) (Wake County GIS /
   Environmental Services), via the public ArcGIS REST service
   `maps.wake.gov/arcgis/rest/services/Inspections/RestaurantInspectionsOpenData`. Wake County publishes these under
   open-data terms that can differ per dataset, so check the dataset pages on data.wake.gov before reusing the data.
   We credit Wake County on the map and here. We have not changed the scores or violations.
-- **Gluten-free claims:** taken from each restaurant's own public website (the evidence URL and quote are stored with
+* **Gluten-free claims:** taken from each restaurant's own public website (the evidence URL and quote are stored with
   every claim) and checked by a human on our team. Restaurant menus change, so confirm with the restaurant,
   especially if you have coeliac disease. This is not medical advice.
-- **Map library:** [Leaflet](https://leafletjs.com/) 1.9.4, BSD 2-Clause, vendored in `scripts/data/vendor/`.
-- **AI assistance:** Claude (Anthropic) read menu text, and its answers were kept only when the quote matched the page.
+* **Map library:** [Leaflet](https://leafletjs.com/) 1.9.4, BSD 2-Clause, vendored in `scripts/data/vendor/`.
+* **AI assistance:** Claude (Anthropic) read menu text, and its answers were kept only when the quote matched the page.
