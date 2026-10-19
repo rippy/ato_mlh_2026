@@ -19,18 +19,99 @@ So the map needs an annotation layer on top of the open data. That layer is `scr
 
 ## How it works
 
+### 1. Where the data comes from (`fetch_data.py`)
+
+Everything is downloaded once, cached in `scripts/data/`, and committed, so the map builds offline.
+
+```mermaid
+flowchart TD
+    subgraph SRC["Public sources (no keys, no accounts)"]
+        OVP["OpenStreetMap<br/>Overpass API"]
+        ARC["Wake County, NC<br/>ArcGIS REST service<br/>maps.wake.gov"]
+        UNP["Leaflet 1.9.4<br/>(map library)"]
+    end
+
+    OVP -->|"places with a diet:gluten_free tag<br/>(only 1 within 8 km)"| OSMJ["data/osm.json"]
+    OVP -->|"restaurants + cafes with a website tag<br/>(fetch_data.py --places)"| PLJ["data/places.json"]
+    ARC -->|"layer 0: permitted food places<br/>~430 within 3 km"| WKJ["data/wake.json"]
+    ARC -->|"layer 1: inspection scores + dates<br/>only for places with a claim"| INJ["data/inspections.json"]
+    ARC -->|"layer 2: violations, last 12 months<br/>only for places with a claim"| VIJ["data/violations.json"]
+    UNP --> VEN["data/vendor/<br/>leaflet.js, leaflet.css"]
+
+    HS(["HSISID = the join key<br/>across all three county layers"])
+    WKJ --- HS
+    INJ --- HS
+    VIJ --- HS
+
+    PLJ -->|"website URLs"| SEED["annotate.py seed<br/>pre-fills evidence_url"]
+    SEED --> ANN[("annotations.csv")]
+    ANN -->|"which places need health data"| INJ
+```
+
+OSM points are matched to county facilities by distance (<= 150 m) and name similarity (>= 0.6).
+
+### 2. How a gluten-free claim gets made and checked
+
+```mermaid
+flowchart TD
+    ANN[("annotations.csv<br/>one row per restaurant,<br/>keyed by HSISID")]
+    SITE["Restaurant's own website<br/>(identified User-Agent, 1 s pause,<br/>max 2 extra pages)"]
+
+    ANN -->|"evidence_url"| FETCH["enrich_menu.py<br/>download page, keep only text<br/>near gluten / celiac / GF"]
+    SITE --> FETCH
+
+    FETCH --> RULES["Backend: rules<br/>keywords, no AI"]
+    FETCH --> LLM["Backend: claude / apfel / openai<br/>model must quote the page"]
+
+    LLM --> CHK{"Quote appears word<br/>for word on the page?"}
+    CHK -->|no| UNK["unknown<br/>answer thrown away"]
+    CHK -->|yes| MACH
+    RULES --> MACH["Machine claim: yes / limited / unknown<br/>always written verified = no"]
+    UNK --> MACH2["unknown, verified = no"]
+
+    MACH --> UI["verify_ui.py (human)<br/>quote highlighted on the live page<br/>+ link to open it yourself"]
+    MACH2 -->|"JS-only, blocked, or bad quote"| UI2["verify_ui.py ?mode=failed<br/>human reads the site,<br/>pastes the exact quote"]
+
+    UI -->|"Confirm"| HYES["verified = yes<br/>checked_by = human:name"]
+    UI -->|"Reject"| HNO["gf_status = no<br/>verified = yes<br/>original quote kept in note"]
+    UI2 --> HYES
+    UI2 -->|"nothing found"| STAY["stays unknown<br/>dashed / not shown"]
+
+    HYES --> ANN
+    HNO --> ANN
+```
+
+Re-running `enrich_menu.py --redo` only touches machine rows; human rows are never overwritten.
+
+### 3. How the map is built (`gf_map.py`)
+
 ```mermaid
 flowchart LR
-    OSM["OpenStreetMap<br/>(Overpass)"] --> JOIN
-    WAKE["Wake County open data<br/>restaurants, inspections, violations"] --> JOIN
-    JOIN["Join by distance + name<br/>key: HSISID"] --> MAP
-    SITES["Restaurant websites"] --> RULES["Keyword rules"]
-    SITES --> LLM["LLM reader<br/>must quote the page"]
-    RULES --> CSV
-    LLM --> CSV[("annotations.csv<br/>verified = no")]
-    CSV --> UI["Human verification UI<br/>reads the quote on the live page"]
-    UI -->|"verified = yes"| CSV2[("annotations.csv<br/>human-verified")]
-    CSV2 --> MAP["map.html<br/>solid = verified, dashed = unverified<br/>colour = health data"]
+    ANN[("annotations.csv")] --> J
+    OSMJ["osm.json<br/>OSM tags"] --> J
+    WKJ["wake.json"] --> J
+    INJ["inspections.json"] --> J
+    VIJ["violations.json"] --> J
+    J["Join on HSISID<br/>+ 15-minute walk filter (~1200 m)"] --> P["Pin per place"]
+
+    P --> COL{"Colour from health data"}
+    COL -->|"score >= 90 and<br/>0 violations in 12 months"| G["green"]
+    COL -->|"mixed"| A["amber"]
+    COL -->|"score < 80"| R["red"]
+    COL -->|"no data"| GR["gray"]
+
+    P --> TRUST{"Trust tier"}
+    TRUST -->|"verified = yes"| SOLID["solid pin"]
+    TRUST -->|"OSM tag"| SOLID
+    TRUST -->|"verified = no"| DASH["dashed pin"]
+
+    G --> OUT["map.html<br/>OpenStreetMap tiles + popups<br/>(score, violations, quote, evidence link)"]
+    A --> OUT
+    R --> OUT
+    GR --> OUT
+    SOLID --> OUT
+    DASH --> OUT
+    OUT --> PAGES["GitHub Pages"]
 ```
 
 1. **Open data.** Restaurants from OpenStreetMap (Overpass) are matched to Wake County facilities by
