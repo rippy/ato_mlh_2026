@@ -6,9 +6,9 @@ hsisid,name,address,dist_m,osm,gf_status,verified,source,evidence_url,evidence_n
 04092017178,RALEIGH RAW,"7 W HARGETT ST , RALEIGH",62,,,,,,,,
 04092019544,LE DIVE,"14 W. MARTIN STREET, RALEIGH",69,,,,,,,,
 04092010485,MECCA RESTAURANT,"13 E MARTIN ST , RALEIGH",81,,unknown,no,auto,https://www.mecca-restaurant.com/,"No mention of gluten, celiac or GF on the 3 page(s) checked (the menu may be a PDF, an image or another site).",auto,2026-10-19
-04092014534,RALEIGH TIMES BAR,"14 E HARGETT ST , RALEIGH",81,,unknown,no,llm,https://www.morningtimes-raleigh.com/menus,"Model said 'yes' but its quote was not found on the pages, so it was discarded. Read the pages by hand.",llm:claude,2026-10-19
+04092014534,RALEIGH TIMES BAR,"14 E HARGETT ST , RALEIGH",81,,limited,yes,human,https://www.morningtimes-raleigh.com/menus,"""Gluten-Free Cookie, but also options like Eggs only, Salads etc that could be used to build own gluten-free meal"" (human-read)",human:rippy,2026-10-19
 04092019732,INKA GRILL,"16 W MARTIN STREET, RALEIGH",83,,,,,,,,
-04092016191,ORO RESTAURANT   LOUNGE,"18 E MARTIN ST , RALEIGH",113,,yes,no,llm,https://ororaleigh.com/menu/dinner-menu/,"""Boasting a menu that features a variety of rotating global style tapas and small plates, ORO offers something for everyone with vegetarian, vegan and gluten free options!""",llm:claude,2026-10-19
+04092016191,ORO RESTAURANT   LOUNGE,"18 E MARTIN ST , RALEIGH",113,,yes,yes,human,https://ororaleigh.com/menu/dinner-menu/,"""Boasting a menu that features a variety of rotating global style tapas and small plates, ORO offers something for everyone with vegetarian, vegan and gluten free options!""",human:rippy,2026-10-19
 04092019538,THE THIRSTY BUFFALO,"211 S WILMINGTON STREET, RALEIGH",116,,,,,,,,
 04092016679,BITTERSWEET,"16 E MARTIN ST , RALEIGH",122,,,,,,,,
 04092016926,DEATH AND TAXES,"105 W HARGETT ST , RALEIGH",122,,unknown,no,auto,https://ac-restaurants.com/death-taxes/,"No mention of gluten, celiac or GF on the 1 page(s) checked (the menu may be a PDF, an image or another site).",auto,2026-10-19
@@ -21,27 +21,27 @@ hsisid,name,address,dist_m,osm,gf_status,verified,source,evidence_url,evidence_n
 04092019514,DICED (FAY. ST.),"121 FAYETTEVILLE ST, RALEIGH",155,,,,,,,,
 04092019583,PRIMO HOAGIES (FAY. ST.),"121 FAYETTEVILLE ST, RALEIGH",155,,,,,,,,
 04092019169,COURTHOUSE DELI,"316 FAYETTEVILLE  ST , RALEIGH",156,,,,,,,,
-04092015415,GRAVY,"135 S WILMINGTON ST , RALEIGH",158,,yes,no,llm,https://www.gravyraleigh.com/menu/lunch,"""Italian Chopped Cucumber, cherry tomatoes, mozzarella, olives, salami, and red onions, balsamic drizzle over romaine heart lettuce with house-made Italian dressing $ 13.50 gluten-free""",llm:claude,2026-10-19
+04092015415,GRAVY,"135 S WILMINGTON ST , RALEIGH",158,,yes,yes,human,https://www.gravyraleigh.com/menu/lunch,"""Italian Chopped Cucumber, cherry tomatoes, mozzarella, olives, salami, and red onions, balsamic drizzle over romaine heart lettuce with house-made Italian dressing $ 13.50 gluten-free""",human:rippy,2026-10-19
 04092011314,REVENUE BLDG. CAFETERIA,"305 N WILMINGTON ST , RALEIGH",171,,,,,,,,
 040920110097,HIBACHI 88,"327 S WILMINGTON ST, RALEIGH",171,,,,,,,,
-04092016659,SONO SUSHI BAR,"319 FAYETTEVILLE ST , RALEIGH",173,,yes,no,llm,https://sonoraleigh.com/,"""Miso Soup 6 Seafood Mushroom, Wakame, Tofu, Green Onion Gluten Free""",llm:claude,2026-10-19
-04092016776,MANHATTAN CAFE,"320 S WILMINGTON  ST , RALEIGH",173,,yes,no,llm,https://manhattancafe.com/menu/,"""Choose 1 Bread White, Hoagie, Wrap/Tortilla, Wheat, Rye, Gluten-free (+$2.00)""",llm:claude,2026-10-19
+04092016659,SONO SUSHI BAR,"319 FAYETTEVILLE ST , RALEIGH",173,,yes,yes,human,https://sonoraleigh.com/,"""Miso Soup 6 Seafood Mushroom, Wakame, Tofu, Green Onion Gluten Free"" | human: listed on FAQ too https://sonoraleigh.com/faqs.html",human:rippy,2026-10-19
+04092016776,MANHATTAN CAFE,"320 S WILMINGTON  ST , RALEIGH",173,,yes,yes,human,https://manhattancafe.com/menu/,"""Choose 1 Bread White, Hoagie, Wrap/Tortilla, Wheat, Rye, Gluten-free (+$2.00)"" | human: Gluten-free Bread (+$2.00)",human:rippy,2026-10-19
 04092019595,CENTRO,"106 S WILMINGTON STREET, RALEIGH",201,,unknown,no,auto,https://www.centroraleigh.com/,"No mention of gluten, celiac or GF on the 2 page(s) checked (the menu may be a PDF, an image or another site).",auto,2026-10-19
 04092010264,FIRST PRESBYTERIAN CHURCH,"120 W HARGETT ST, RALEIGH",205,,,,,,,,
-04092017545,BREWERY BHAVANA,"218 S BLOUNT ST , RALEIGH",215,,yes,no,llm,https://brewerybhavana.com/food-menu/,"""BAMBOO SHOOT SALAD $15.80 Delicate tofu skin and crisp bamboo shoots, infused with aromatic herbs and spices, dressed in a house made chili oil (Vegan & Gluten Free)""",llm:claude,2026-10-19
+04092017545,BREWERY BHAVANA,"218 S BLOUNT ST , RALEIGH",215,,yes,yes,human,https://brewerybhavana.com/food-menu/,"""BAMBOO SHOOT SALAD $15.80 Delicate tofu skin and crisp bamboo shoots, infused with aromatic herbs and spices, dressed in a house made chili oil (Vegan & Gluten Free)"" | human: multiple options",human:rippy,2026-10-19
 04092016248,BIDA MANDA,"222 S BLOUNT ST , RALEIGH",217,,,,,,,,
 04092019170,JUSTICE CENTER CAFE,"300 S SALISBURY ST , RALEIGH",217,,,,,,,,
 04092019534,CAFFE LUNA,"136 E HARGETT STREET, RALEIGH",221,,unknown,no,auto,https://cafeluna.com/,"No mention of gluten, celiac or GF on the 2 page(s) checked (the menu may be a PDF, an image or another site).",auto,2026-10-19
 04092019482,EL TORO LOCO TAQUERIA,"314 S BLOUNT ST, RALEIGH",222,,,,,,,,
-04092018692,42 LAWRENCE,"134 E MARTIN ST , RALEIGH",225,,unknown,no,auto,http://www.42lawrence.com/,Page has almost no readable text (probably needs JavaScript); read it by hand.,auto,2026-10-19
+04092018692,42 LAWRENCE,"134 E MARTIN ST , RALEIGH",225,,limited,yes,human,http://www.42lawrence.com/,"""has oat milk, but would need to confirm if celiac friendly"" (human-read)",human:rippy,2026-10-19
 04092019292,AMRUT,"120 E MARTIN ST , RALEIGH",225,,,,,,,,
 04092017461,AMORINO GELATO,"137 E DAVIE ST , RALEIGH",252,,,,,,,,
-04092017563,SIR WALTER COFFEE,"145 E DAVIE ST , RALEIGH",252,,unknown,no,auto,https://raleigh.sirwaltercoffee.com/,Could not fetch page (curl: (6) Could not resolve host: raleigh.sirwaltercoffee.com).,auto,2026-10-19
+04092017563,SIR WALTER COFFEE,"145 E DAVIE ST , RALEIGH",252,,limited,yes,human,https://raleigh.sirwaltercoffee.com/,"""Seems to have some options, the store URL is wrong it should be https://www.sirwaltercoffee.com/menus-1-1-1?location=East+Davie+Street&menu=food"" (human-read)",human:rippy,2026-10-19
 04092018795,DOMINO'S #8855,"135 E DAVIE ST , RALEIGH",252,,,,,,,,
 040920110030,KOKORO RAMEN & IZAKAYA,"200 E MARTIN ST, RALEIGH",274,,unknown,no,auto,http://kokororamennc.com,"No mention of gluten, celiac or GF on the 1 page(s) checked (the menu may be a PDF, an image or another site).",auto,2026-10-19
-04092017244,WHISKEY KITCHEN,"201 W MARTIN ST , RALEIGH",275,,yes,no,llm,https://www.whiskey.kitchen/,"""Boiled Peanuts spice-boiled, pickled peppers $ 7 gluten free, vegan""",llm:claude,2026-10-19
+04092017244,WHISKEY KITCHEN,"201 W MARTIN ST , RALEIGH",275,,yes,yes,human,https://www.whiskey.kitchen/,"""Boiled Peanuts spice-boiled, pickled peppers $ 7 gluten free, vegan"" | human: multiple options",human:rippy,2026-10-19
 04092019122,MUSTANG HOUSE,"411 FAYETTEVILLE ST, RALEIGH",282,,unknown,no,auto,http://mustanghouseraleigh.com,"No mention of gluten, celiac or GF on the 1 page(s) checked (the menu may be a PDF, an image or another site).",auto,2026-10-19
-04092019952,WOODY'S AT CITY MARKET,"205 WOLFE STREET, RALEIGH",292,,unknown,no,auto,https://woodyscitymarket.com/,Page returned HTTP 403.,auto,2026-10-19
+04092019952,WOODY'S AT CITY MARKET,"205 WOLFE STREET, RALEIGH",292,,limited,yes,human,https://woodyscitymarket.com/,"""Has salad options, menu URL is https://woodyscitymarket.com/menu"" (human-read)",human:rippy,2026-10-19
 04092019983,SHERATON RALEIGH,"421 S SALISBURY STREET, RALEIGH",300,,,,,,,,
 04092018316,BEAN SPROUTS CAFE,"201 E HARGETT ST , RALEIGH",307,,,,,,,,
 04092016387,THE HAT RACK (RED HAT 9TH FLOOR),"100 E DAVIE ST , RALEIGH",308,,,,,,,,
@@ -56,26 +56,26 @@ hsisid,name,address,dist_m,osm,gf_status,verified,source,evidence_url,evidence_n
 04092019918,SAIGON KITCHEN,"321 S BLOUNT STREET, RALEIGH",336,,,,,,,,
 04092014486,BIG ED'S CITY MARKET RESTAURANT,"220 WOLFE ST , RALEIGH",344,,unknown,no,auto,http://www.bigedscitymarket.com/,"No mention of gluten, celiac or GF on the 1 page(s) checked (the menu may be a PDF, an image or another site).",auto,2026-10-19
 04092013128,EL RODEO RESTAURANT,"329 S BLOUNT ST, RALEIGH",348,,unknown,no,auto,https://elrodeorest.com/,"No mention of gluten, celiac or GF on the 2 page(s) checked (the menu may be a PDF, an image or another site).",auto,2026-10-19
-04092018595,ELEMENT GASTROPUB,"421 FAYETTEVILLE ST, RALEIGH",354,,yes,no,llm,https://elementgastropub.com/menu,"""GF: gluten-free option available.""",llm:claude,2026-10-19
-04092019919,CREMA CAFE AND EATERY,"421 FAYETTEVILLE STREET, RALEIGH",354,,unknown,no,auto,https://cremaandmore.com/,Page has almost no readable text (probably needs JavaScript); read it by hand.,auto,2026-10-19
+04092018595,ELEMENT GASTROPUB,"421 FAYETTEVILLE ST, RALEIGH",354,,yes,yes,human,https://elementgastropub.com/menu,"""GF: gluten-free option available."" | human: items tagged green with (GF OPTION)",human:rippy,2026-10-19
+04092019919,CREMA CAFE AND EATERY,"421 FAYETTEVILLE STREET, RALEIGH",354,,yes,yes,human,https://cremaandmore.com/,"""Gluten Free Bread Available for $1.00, page is here https://cremacaferaleigh.com/lunch"" (human-read)",human:rippy,2026-10-19
 04092017485,CITY MARKET SUSHI,"315 BLAKE ST , RALEIGH",366,,unknown,no,auto,http://citymarketsushi.com/,"No mention of gluten, celiac or GF on the 2 page(s) checked (the menu may be a PDF, an image or another site).",auto,2026-10-19
-04092012954,VIC'S ITALIAN CAFE,"331 BLAKE ST , RALEIGH",379,,unknown,no,auto,http://www.vicsitalianrestaurant.com/,Page returned HTTP 401.,auto,2026-10-19
+04092012954,VIC'S ITALIAN CAFE,"331 BLAKE ST , RALEIGH",379,,yes,yes,human,http://www.vicsitalianrestaurant.com/,"""Proudly serve a perfectly textured gluten-free option, URL is https://www.vicsitalian.com/menu"" (human-read)",human:rippy,2026-10-19
 04092010262,FIRST BAPTIST CHURCH,"99 N SALISBURY ST , RALEIGH",397,,,,,,,,
 04092010851,PARKSIDE,"301 W MARTIN ST, RALEIGH",415,,,,,,,,
 04092015857,JAVA CITY @ CAMPBELL LAW SCHOOL,"225 HILLSBOROUGH ST , RALEIGH",420,,,,,,,,
 04092019637,POOLE'S DINER,"428 S MCDOWELL STREET, RALEIGH",427,,unknown,no,auto,http://ac-restaurants.com/pooles/,"No mention of gluten, celiac or GF on the 1 page(s) checked (the menu may be a PDF, an image or another site).",auto,2026-10-19
-04092016473,STARBUCKS #75937,"500 FAYETTEVILLE ST , RALEIGH",448,,unknown,no,auto,https://www.starbucks.com/store-locator/store/7706/marriott-downtown-raleigh-500-fayetteville-st-mall-raleigh-nc-276012118-us,Page has almost no readable text (probably needs JavaScript); read it by hand.,auto,2026-10-19
-04092016474,RYE BAR   SOUTHERN KITCHEN,"500 FAYETTEVILLE ST , RALEIGH",448,,unknown,no,auto,https://www.ryeraleigh.com/,Page has almost no readable text (probably needs JavaScript); read it by hand.,auto,2026-10-19
-04092019175,CHIDO TACO #3,"555 FAYETTEVILLE ST, RALEIGH",449,,unknown,no,auto,https://chidotaco.com/,Page returned HTTP 403.,auto,2026-10-19
+04092016473,STARBUCKS #75937,"500 FAYETTEVILLE ST , RALEIGH",448,,limited,yes,human,https://www.starbucks.com/store-locator/store/7706/marriott-downtown-raleigh-500-fayetteville-st-mall-raleigh-nc-276012118-us,"""All StarBucks menus are pretty much the same, heated up food has risk of cross contamination"" (human-read)",human:rippy,2026-10-19
+04092016474,RYE BAR   SOUTHERN KITCHEN,"500 FAYETTEVILLE ST , RALEIGH",448,,limited,yes,human,https://www.ryeraleigh.com/,"""WayBack Machine has salads https://web.archive.org/web/20250109150002/https://www.ryeraleigh.com/resourcefiles/pdf/lunch-menu-2024.pdf"" (human-read)",human:rippy,2026-10-19
+04092019175,CHIDO TACO #3,"555 FAYETTEVILLE ST, RALEIGH",449,,limited,yes,human,https://chidotaco.com/,"""Comments from users say there happy with the gluten free options available."" (human-read)",human:rippy,2026-10-19
 04092019515,SIR WALTER COFFEE 555,"555 FAYETTEVILLE ST, RALEIGH",449,,unknown,no,auto,https://sirwaltercoffee.com/,"No mention of gluten, celiac or GF on the 3 page(s) checked (the menu may be a PDF, an image or another site).",auto,2026-10-19
-04092017772,A PLACE AT THE TABLE,"300 W HARGETT ST , RALEIGH",453,,limited,no,llm,https://tableraleigh.org/menu/,"""Turkey sausage and gluten-free bread available upon request."" Cross-contact note: Our kitchen is NOT gluten-free and cross-contact may occur.",llm:claude,2026-10-19
+04092017772,A PLACE AT THE TABLE,"300 W HARGETT ST , RALEIGH",453,,limited,yes,human,https://tableraleigh.org/menu/,"""Turkey sausage and gluten-free bread available upon request."" Cross-contact note: Our kitchen is NOT gluten-free and cross-contact may occur. | human: Page says: ""Our kitchen is NOT gluten-free and cross-contact may occur""",human:rippy,2026-10-19
 04092018610,LIBATIONS 317,"317 W MORGAN ST , RALEIGH",471,,unknown,no,auto,https://www.libations317.com/,"No mention of gluten, celiac or GF on the 1 page(s) checked (the menu may be a PDF, an image or another site).",auto,2026-10-19
 04092015215,RALEIGH CONVENTION CENTER,"500 S SALISBURY  ST , RALEIGH",473,,,,,,,,
 04092019455,COMPLEX BREW,"500 S SALISBURY ST, RALEIGH",473,,,,,,,,
 04092019871,JUBALA COFFEE #4,"301 HILLSBOROUGH ST, RALEIGH",499,,unknown,no,auto,https://www.jubalacoffee.com/,"No mention of gluten, celiac or GF on the 2 page(s) checked (the menu may be a PDF, an image or another site).",auto,2026-10-19
 04092016155,DAILY PLANET CAFE,"11   W JONES ST , RALEIGH",514,,,,,,,,
 04092016265,ACRO CAFE,"11 W JONES ST , RALEIGH",514,,,,,,,,
-04092015131,THE PIT,"328 W DAVIE ST , RALEIGH",519,,yes,no,llm,https://www.thepit-raleigh.com/menu/lunch,"""Southern-Style Deviled Eggs Sweet relish and paprika $ 9.50 gluten-free""",llm:claude,2026-10-19
+04092015131,THE PIT,"328 W DAVIE ST , RALEIGH",519,,yes,yes,human,https://www.thepit-raleigh.com/menu/lunch,"""Southern-Style Deviled Eggs Sweet relish and paprika $ 9.50 gluten-free"" | human: menu items tagged ""gluten-free""",human:rippy,2026-10-19
 04092019312,FIGULINA,"317 S HARRINGTON ST, RALEIGH",532,,,,,,,,
 04092019377,BERKELEY CAFE,"428 S DAWSON ST , RALEIGH",536,,,,,,,,
 04092013111,THE FLYING SAUCER RESTAURANT,"328 W MORGAN ST , RALEIGH",565,,,,,,,,
