@@ -471,6 +471,9 @@ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
   maxZoom: 19,
   attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
 }).addTo(map);
+map.attributionControl.addAttribution(
+  'Health inspections: <a href="https://data.wake.gov/">Wake County, NC</a> open data'
+  + ' &middot; Gluten-free claims: restaurant websites, checked by <a href="https://github.com/rippy/ato_mlh_2026">our team</a>');
 const ring = L.circle(CENTER, {radius: RADIUS, color: '#2563eb', weight: 1, fillOpacity: 0.04}).addTo(map);
 L.circleMarker(CENTER, {radius: 8, color: '#fff', weight: 2, fillColor: '#2563eb', fillOpacity: 1})
   .addTo(map).bindTooltip('Raleigh Convention Center', {permanent: true, direction: 'top'});

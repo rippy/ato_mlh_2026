@@ -19,6 +19,20 @@ So the map needs an annotation layer on top of the open data. That layer is `scr
 
 ## How it works
 
+```mermaid
+flowchart LR
+    OSM["OpenStreetMap<br/>(Overpass)"] --> JOIN
+    WAKE["Wake County open data<br/>restaurants, inspections, violations"] --> JOIN
+    JOIN["Join by distance + name<br/>key: HSISID"] --> MAP
+    SITES["Restaurant websites"] --> RULES["Keyword rules"]
+    SITES --> LLM["LLM reader<br/>must quote the page"]
+    RULES --> CSV
+    LLM --> CSV[("annotations.csv<br/>verified = no")]
+    CSV --> UI["Human verification UI<br/>reads the quote on the live page"]
+    UI -->|"verified = yes"| CSV2[("annotations.csv<br/>human-verified")]
+    CSV2 --> MAP["map.html<br/>solid = verified, dashed = unverified<br/>colour = health data"]
+```
+
 1. **Open data.** Restaurants from OpenStreetMap (Overpass) are matched to Wake County facilities by
    distance (<= 150 m) and name similarity. Inspection scores and the last 12 months of violations are
    pulled from the county ArcGIS service. Everything is cached in `scripts/data/`, so the map builds offline.
@@ -116,8 +130,21 @@ Jonathan Rippy and Rebekah Callari-Kaczmarczyk.
 
 ## Licence and attribution
 
-MIT, see [LICENSE](LICENSE).
+Code: MIT, see [LICENSE](LICENSE).
 
-- Map data (c) [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors (ODbL).
-- Restaurant and inspection data: Wake County open data (CC BY 4.0).
-- Map rendering: [Leaflet](https://leafletjs.com/).
+Data and libraries we use, and who owns them:
+
+- **Map data and tiles:** (c) [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors, available under the
+  [Open Database Licence (ODbL)](https://opendatacommons.org/licenses/odbl/). Our cached `scripts/data/osm.json` is
+  derived from OSM and stays under ODbL. Tiles are loaded from `tile.openstreetmap.org` under the
+  [OSM tile usage policy](https://operations.osmfoundation.org/policies/tiles/).
+- **Restaurants, health inspections and violations:** [Wake County, NC](https://data.wake.gov/) (Wake County GIS /
+  Environmental Services), via the public ArcGIS REST service
+  `maps.wake.gov/arcgis/rest/services/Inspections/RestaurantInspectionsOpenData`. Wake County publishes these under
+  open-data terms that can differ per dataset, so check the dataset pages on data.wake.gov before reusing the data.
+  We credit Wake County on the map and here. We have not changed the scores or violations.
+- **Gluten-free claims:** taken from each restaurant's own public website (the evidence URL and quote are stored with
+  every claim) and checked by a human on our team. Restaurant menus change, so confirm with the restaurant,
+  especially if you have coeliac disease. This is not medical advice.
+- **Map library:** [Leaflet](https://leafletjs.com/) 1.9.4, BSD 2-Clause, vendored in `scripts/data/vendor/`.
+- **AI assistance:** Claude (Anthropic) read menu text, and its answers were kept only when the quote matched the page.

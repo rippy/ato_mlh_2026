@@ -24,4 +24,4 @@ AI results are always written verified=no: open evidence_url, check the quote, t
 ## Notes
 - Do not re-extract this zip over a working copy without backing up annotations.csv (it would be overwritten). data/ is not in the zip.
 - Overpass is often overloaded: cache and commit data/. Fallback: --osm-file x.json (export from overpass-turbo.eu).
-- Attribution: (c) OpenStreetMap contributors (ODbL); Wake County (CC BY 4.0).
+- Attribution: (c) OpenStreetMap contributors (ODbL); Wake County open data (credit Wake County GIS; see top-level README).

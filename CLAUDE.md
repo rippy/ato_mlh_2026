@@ -42,7 +42,7 @@ Filters: gluten-free claim, recent good score, few recent violations, within a 1
 
 ## Still to do before 2:00
 LICENSE (MIT, 2026, list all team names), commit data/ and annotations.csv, README for judges,
-record demo video, submit. Attribution: (c) OpenStreetMap contributors (ODbL); Wake County open data (CC BY 4.0).
+record demo video, submit. Attribution: (c) OpenStreetMap contributors (ODbL); Wake County open data (credit Wake County GIS; license terms vary per dataset, CC BY 4.0 NOT verified).
 
 ## Prize notes
 Claude/apfel are not open-weight. "Best Open-Source AI" / "Best Use of DigitalOcean" need an open-weight
