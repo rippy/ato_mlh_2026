@@ -6,6 +6,8 @@ Finds allergy-friendly restaurants (starting with gluten-free) within a 15-minut
 Raleigh Convention Center and pins them on an OpenStreetMap map, coloured by Wake County
 health-inspection results. Every gluten-free claim shows its evidence and whether a human has checked it.
 
+<https://rippy.github.io/ato_mlh_2026/scripts/map.html>
+
 ## The problem
 
 Allergy-friendly food is hard to find, and the open data doesn't help:
