@@ -51,6 +51,13 @@ STATUS = {
     "poor":   ("#d73027", "Poor: latest score under 80"),
     "nodata": ("#6b7280", "No county inspection data"),
 }
+GF_STATUS_ICON = {
+    "only": ("⊙", "Only gluten-free items"),
+    "yes": ("✓", "Gluten-free options available"),
+    "limited": ("◐", "Limited gluten-free options"),
+    "no": ("×", "No gluten-free options"),
+    "unknown": ("?", "Gluten-free status unknown"),
+}
 
 
 # --------------------------------------------------------------------------- helpers
@@ -80,6 +87,27 @@ def to_float(v):
         return float(v)
     except (TypeError, ValueError):
         return None
+
+
+def score_sparkline(scores):
+    """Return a compact SVG trend line for scores listed newest first."""
+    if len(scores) < 2:
+        return ""
+    chronological = list(reversed(scores))
+    low, high = min(chronological), max(chronological)
+    spread = high - low or 1
+    points = []
+    for index, score in enumerate(chronological):
+        x = 3 + index * 66 / (len(chronological) - 1)
+        y = 17 - (score - low) * 14 / spread
+        points.append((x, y))
+    point_text = " ".join(f"{x:.1f},{y:.1f}" for x, y in points)
+    markers = "".join(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="2"/>'
+                      for x, y in points)
+    label = ", ".join(f"{score:g}" for score in chronological)
+    return (f'<svg class="popup-sparkline" viewBox="0 0 72 20" role="img" '
+            f'aria-label="Inspection scores, oldest to newest: {label}">'
+            f'<polyline points="{point_text}"/>{markers}</svg>')
 
 
 def parse_date(v):
@@ -385,7 +413,7 @@ def main():
         rows = sorted(insp_by.get(key, []), key=lambda r: r[0] or EPOCH_MIN, reverse=True)
         recent = [a for d, a in viol_by.get(key, []) if d is None or d >= cutoff]
         latest_date, latest_score = (rows[0][0], rows[0][1]) if rows else (None, None)
-        last3 = [f"{r[1]:g}" for r in rows[:3] if r[1] is not None]
+        recent_scores = [r[1] for r in rows[:3] if r[1] is not None]
 
         if key is None or (not rows and key not in viol_by):
             status = "nodata"
@@ -398,41 +426,51 @@ def main():
         counts[status] += 1
 
         who = f" ({esc(prim['by'])}, {esc(prim['on'])})" if prim["tier"] == "verified" and prim["by"] else ""
-        lines = [f"<b>{esc(p['name'])}</b>"]
+        lines = [f'<div class="popup-title">{esc(p["name"])}</div>']
         if p.get("county_name") and norm(p["county_name"]) != norm(p["name"]):
-            lines.append(f"County record: {esc(p['county_name'])}")
+            lines.append(f'<div class="popup-row"><span class="popup-label">County record</span>'
+                         f'<span class="popup-value">{esc(p["county_name"])}</span></div>')
         if p.get("address"):
-            lines.append(esc(p["address"]))
+            lines.append(f'<div class="popup-address">{esc(p["address"])}</div>')
+        lines.append(f'<div class="popup-distance">{p["dist_m"]} m away, '
+                     f'~{max(1, round(p["dist_m"] / 80))} min walk (straight-line)</div>')
         if prim["tier"] == "unverified":
             tier_text = ("AI-suggested, NOT yet verified" if prim["source"] == "llm"
                          else "reported, NOT yet verified")
         else:
             tier_text = TIER_TEXT[prim["tier"]]
-        lines.append(f"Gluten-free: <b>{esc(prim['status'])}</b>, {tier_text}{who}")
+        icon, icon_label = GF_STATUS_ICON.get(prim["status"], GF_STATUS_ICON["unknown"])
+        lines.append(f'<div class="popup-row"><span class="popup-label">Gluten-free</span>'
+                 f'<span class="gf-status"><span class="gf-icon" role="img" '
+                 f'aria-label="{esc(icon_label)}" title="{esc(icon_label)}">{icon}</span> '
+                 f'<span class="popup-value">{esc(prim["status"])}</span></span> '
+                 f'<span class="popup-detail">{tier_text}{who}</span></div>')
         if p["conflict"]:
-            lines.append("<b>Sources disagree</b> (one says no); check the evidence below")
-        lines.append(f"{p['dist_m']} m away, ~{max(1, round(p['dist_m'] / 80))} min walk (straight-line)")
-        if status == "nodata":
-            lines.append("No county inspection data found")
+            lines.append('<div class="popup-alert"><b>Sources disagree</b> (one says no)</div>')
+        lines.append('<div class="popup-section">Inspection</div>')
+        latest_value = f"{latest_score:g}" if latest_score is not None else "-"
+        when = f" ({latest_date:%b %d, %Y})" if latest_date and latest_score is not None else ""
+        if len(recent_scores) > 1:
+            recent_value = score_sparkline(recent_scores)
+        elif recent_scores:
+            recent_value = f'<span class="popup-value">{recent_scores[0]:g}</span>'
         else:
-            if latest_score is not None:
-                when = f" on {latest_date:%b %d, %Y}" if latest_date else ""
-                lines.append(f"Latest score: <b>{latest_score:g}</b>{when}")
-                if len(last3) > 1:
-                    lines.append("Recent scores (newest first): " + ", ".join(last3))
-            lines.append(f"Violations in the last 12 months: <b>{len(recent)}</b>")
-        ev = []
-        for c in p["claims"]:
-            if c["status"] == "unknown" and not (c["note"] or c["url"]):
-                continue            # a blank seeded row carries no evidence
-            note = (c["note"] or "")[:240]
-            link = f" <a href='{esc(c['url'])}' target='_blank' rel='noopener'>link</a>" if c["url"] else ""
-            ev.append(f"&bull; {esc(c['source'])} [{esc(c['tier'])}] {esc(c['status'])}: {esc(note)}{link}")
-        lines.append("Evidence:<br>" + "<br>".join(ev))
-        lines.append("<i>Gluten-free here means at least one option, not a celiac-safe kitchen. "
-                     "Confirm with the restaurant.</i>")
-        pins.append({"lat": p["lat"], "lon": p["lon"], "color": STATUS[status][0],
-                     "dashed": prim["tier"] == "unverified", "popup": "<br>".join(lines)})
+            recent_value = '<span class="popup-value">-</span>'
+        violations_value = str(len(recent)) if status != "nodata" else "-"
+        lines.append('<div class="popup-inspection-grid">'
+                     '<div><span class="popup-label">Latest Score</span>'
+                     f'<span class="popup-value">{latest_value}</span>'
+                     f'<span class="popup-date">{when}</span></div>'
+                     '<div><span class="popup-label">Last 3 Scores</span>'
+                     f'{recent_value}</div>'
+                     '<div><span class="popup-label">Violations (last 12M)</span>'
+                     f'<span class="popup-value">{violations_value}</span></div></div>')
+        lines.append('<div class="popup-note">At least one gluten-free option; not necessarily a '
+                     'celiac-safe kitchen. Confirm with the restaurant.</div>')
+        pins.append({"lat": p["lat"], "lon": p["lon"], "name": p["name"],
+                 "latest_score": latest_score, "gf_status": prim["status"],
+                 "color": STATUS[status][0],
+                 "dashed": prim["tier"] == "unverified", "popup": "".join(lines)})
 
     legend = [[STATUS[k][0], f"{STATUS[k][1]} ({counts[k]})"] for k in STATUS]
     vend = DATA / "vendor"
@@ -460,8 +498,39 @@ TEMPLATE = """<!doctype html>
 <style>
 html,body,#map{height:100%;margin:0}
 .legend{background:#fff;color:#111;padding:8px 10px;border-radius:6px;font:13px/1.6 system-ui,sans-serif;box-shadow:0 1px 4px rgba(0,0,0,.3);max-width:290px}
+.legend{max-height:calc(100vh - 32px);overflow-y:auto}
 .legend i{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+.restaurants{margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid #ddd}
+.restaurants h2{margin:0 0 4px;font-size:14px;line-height:1.4}
+.restaurants ul{margin:0;padding:0;list-style:none}
+.restaurants li{margin:0}
+.restaurant-button{display:flex;width:100%;align-items:center;justify-content:space-between;gap:8px;padding:3px 0;border:0;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.restaurant-button:hover{text-decoration:underline}
+.restaurant-button:focus-visible{outline:2px solid #2563eb;outline-offset:1px}
+.restaurants .score{display:inline-block;min-width:2.5em;padding:1px 6px;border-radius:999px;font-weight:700;text-align:center;white-space:nowrap}
+.restaurant-badges{display:inline-flex;align-items:center;gap:4px;flex:none}
+.restaurant-gf-icon{display:inline-grid;width:18px;height:18px;place-items:center;border:1px solid #777;border-radius:50%;font-size:12px;font-weight:700;line-height:1}
 .legend .note{margin-top:6px;padding-top:6px;border-top:1px solid #ddd;font-size:12px}
+.pin-example{display:inline-block;width:13px;height:13px;box-sizing:border-box;margin-right:5px;border:1.5px solid #000;border-radius:50%;background:rgba(245,158,11,.95);vertical-align:-2px}
+.pin-example.dashed{border-width:2px;border-style:dashed;background:rgba(245,158,11,.25)}
+.popup-title{font-size:16px;font-weight:700;line-height:1.3}
+.popup-section{margin-top:5px;padding-top:4px;border-top:1px solid #ddd;font-size:12px;font-weight:700}
+.popup-inspection-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:4px}
+.popup-inspection-grid .popup-label{text-transform:none;font-size:10px;line-height:1.2}
+.popup-row{margin-top:3px}
+.popup-label{display:block;color:#555;font-size:10px;font-weight:700;text-transform:uppercase}
+.popup-value{font-size:13px;font-weight:600}
+.popup-date{margin-left:4px;color:#666;font-size:11px;font-weight:400}
+.popup-detail,.popup-address{color:#444;font-size:12px}
+.popup-address{margin-top:1px}
+.popup-distance{color:#555;font-size:11px}
+.gf-status{display:inline-flex;align-items:center;gap:3px}
+.gf-icon{display:inline-grid;width:15px;height:15px;place-items:center;border:1px solid #777;border-radius:50%;font-size:10px;font-weight:700;line-height:1}
+.popup-sparkline{display:block;width:72px;height:20px;margin-top:1px;overflow:visible}
+.popup-sparkline polyline{fill:none;stroke:#2563eb;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.popup-sparkline circle{fill:#2563eb;stroke:#fff;stroke-width:.8}
+.popup-alert{margin-top:3px;color:#9b1c1c;font-size:12px;font-weight:600}
+.popup-note{margin-top:5px;padding-top:4px;border-top:1px solid #ddd;color:#555;font-size:11px;font-style:italic}
 </style></head><body><div id="map"></div>
 <script src="__LEAFLET_JS__"></script>
 <script>
@@ -474,17 +543,70 @@ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
 const ring = L.circle(CENTER, {radius: RADIUS, color: '#2563eb', weight: 1, fillOpacity: 0.04}).addTo(map);
 L.circleMarker(CENTER, {radius: 8, color: '#fff', weight: 2, fillColor: '#2563eb', fillOpacity: 1})
   .addTo(map).bindTooltip('Raleigh Convention Center', {permanent: true, direction: 'top'});
-PINS.forEach(p => L.circleMarker([p.lat, p.lon], p.dashed
-  ? {radius: 10, color: p.color, weight: 3, dashArray: '3 3', fillColor: p.color, fillOpacity: 0.25}
-  : {radius: 10, color: '#fff', weight: 2, fillColor: p.color, fillOpacity: 0.95})
-  .addTo(map).bindPopup(p.popup, {maxWidth: 340}));
+const markers = PINS.map(p => {
+    const marker = L.circleMarker([p.lat, p.lon], p.dashed
+            ? {radius: 10, color: '#000', weight: 2, dashArray: '3 3', fillColor: p.color, fillOpacity: 0.25}
+            : {radius: 10, color: '#000', weight: 1.5, fillColor: p.color, fillOpacity: 0.95});
+    marker.addTo(map).bindPopup(p.popup, {maxWidth: 340});
+    return marker;
+});
 map.fitBounds(ring.getBounds());
 const legend = L.control({position: 'bottomright'});
 legend.onAdd = () => {
   const d = L.DomUtil.create('div', 'legend');
-  d.innerHTML = LEGEND.map(l => `<div><i style="background:${l[0]}"></i>${l[1]}</div>`).join('')
-    + '<div class="note">Solid pin: gluten-free confirmed by the team or tagged in OpenStreetMap.<br>'
-    + 'Dashed pin: not yet verified (for example AI-suggested from the restaurant\\'s own website).</div>';
+    L.DomEvent.disableClickPropagation(d);
+    d.innerHTML = LEGEND.map(l => `<div><i style="background:${l[0]}"></i>${l[1]}</div>`).join('')
+        + '<div class="note"><div><span class="pin-example"></span>Solid pin: gluten-free confirmed by the team or tagged in OpenStreetMap.</div>'
+        + '<div><span class="pin-example dashed"></span>Dashed pin: not yet verified (for example AI-suggested from the restaurant\\'s own website).</div></div>';
+    const restaurants = document.createElement('section');
+    restaurants.className = 'restaurants';
+    const title = document.createElement('h2');
+    title.textContent = 'Gluten Free Restaurants';
+    restaurants.appendChild(title);
+    const list = document.createElement('ul');
+        const statusRank = {yes: 0, limited: 1};
+        const rankedPins = PINS.map((pin, index) => ({pin, index})).sort((a, b) => {
+            const aStatus = statusRank[a.pin.gf_status] ?? 2;
+            const bStatus = statusRank[b.pin.gf_status] ?? 2;
+            if (aStatus !== bStatus) return aStatus - bStatus;
+            const aScore = a.pin.latest_score;
+            const bScore = b.pin.latest_score;
+            if (aScore == null && bScore != null) return 1;
+            if (aScore != null && bScore == null) return -1;
+            return (bScore ?? 0) - (aScore ?? 0) || a.pin.name.localeCompare(b.pin.name);
+        });
+        rankedPins.forEach(({pin, index}) => {
+                const p = pin;
+        const item = document.createElement('li');
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'restaurant-button';
+                button.textContent = p.name;
+                button.addEventListener('click', () => {
+                    const marker = markers[index];
+                    map.setView(marker.getLatLng(), Math.max(map.getZoom(), 16));
+                    marker.openPopup();
+                });
+                const badges = document.createElement('span');
+                badges.className = 'restaurant-badges';
+                const gfIcon = document.createElement('span');
+                gfIcon.className = 'restaurant-gf-icon';
+                gfIcon.textContent = p.gf_status === 'limited' ? '◐' : '✓';
+                gfIcon.title = p.gf_status === 'limited' ? 'Limited gluten-free options' : 'Gluten-free options available';
+                gfIcon.setAttribute('aria-label', gfIcon.title);
+        const score = document.createElement('span');
+        score.className = 'score';
+        score.style.backgroundColor = p.color;
+        score.style.color = p.color === '#1a9850' || p.color === '#f59e0b' ? '#111' : '#fff';
+        score.textContent = p.latest_score === null ? '-' : `${p.latest_score}`;
+        badges.appendChild(gfIcon);
+        badges.appendChild(score);
+        button.appendChild(badges);
+        item.appendChild(button);
+        list.appendChild(item);
+    });
+    restaurants.appendChild(list);
+    d.insertBefore(restaurants, d.firstChild);
   return d;
 };
 legend.addTo(map);
