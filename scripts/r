@@ -1,6 +1,4 @@
 #!/usr/bin/env bash
 
+python3 fetch_data.py && python3 gf_map.py
 
-CACHE_RADIUS_M=8000 python3 fetch_data.py --places
-
-python3 annotate.py seed --limit 80 --max-dist 8000
