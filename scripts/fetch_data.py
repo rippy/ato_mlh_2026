@@ -2,31 +2,41 @@
 """Download and cache every dataset the gluten-free finder needs into ./data/.
 
     python3 fetch_data.py                       fetch what is missing, reuse the rest
+    python3 fetch_data.py --places              also fetch OSM restaurants that list a website
+                                                (used by `annotate.py seed` to pre-fill menu URLs)
     python3 fetch_data.py --refresh             re-download everything
     python3 fetch_data.py --refresh osm,wake    re-download only some parts
-                                                (osm, wake, inspections, violations, vendor)
-    python3 fetch_data.py --all-facilities      also fetch inspections/violations for EVERY
-                                                county restaurant in the radius (bigger download)
+                                                (osm, places, wake, inspections, violations, vendor)
+    python3 fetch_data.py --osm-file x.json     use an Overpass JSON export you saved by hand
+                                                (e.g. from overpass-turbo.eu) instead of downloading
+    python3 fetch_data.py --all-facilities      fetch inspections/violations for EVERY county
+                                                restaurant in the radius (bigger download)
     python3 fetch_data.py --status              show what is cached; download nothing
 
 Environment overrides:
     LAT, LON          centre point (default: Raleigh Convention Center, approximate)
-    CACHE_RADIUS_M    how far out to download (default 3000). The map's walking radius
-                      (RADIUS_M in gf_map.py) can be anything up to this without re-downloading.
+    CACHE_RADIUS_M    how far out to download (default 3000). Use 8000 to cover most of Raleigh.
+                      The map's radius (RADIUS_M) can be anything up to this without re-downloading.
 
 What gets cached in data/:
     osm.json          OpenStreetMap places with a gluten-free tag (Overpass API)
+    places.json       OpenStreetMap restaurants/cafes with a website tag (only with --places)
     wake.json         Wake County permitted food establishments (ArcGIS REST)
-    inspections.json  Wake County inspection scores, for the matched restaurants
-    violations.json   Wake County violations, for the matched restaurants
+    inspections.json  Wake County inspection scores, for every place with a gluten-free claim
+    violations.json   Wake County violations, for the same places
     vendor/           Leaflet JS/CSS so the map page does not need a CDN
     manifest.json     what was fetched, when, for which location
 
-Standard library only. Network calls go through curl, which handles gzip and the system
-certificate store. If a download is interrupted, rerun: finished parts are not repeated.
+Inspection history is fetched for every place that has any claim: an OSM tag OR a row in
+annotations.csv. After adding annotations, rerun this to pull their health data (only the new
+places are downloaded).
+
+Standard library only. Network calls go through curl. If a download is interrupted, rerun:
+finished parts are not repeated.
 """
 import argparse
 import json
+import math
 import os
 import subprocess
 import sys
@@ -44,14 +54,16 @@ UA = "ato_mlh_2026-hackathon/0.1 (https://github.com/rippy/ato_mlh_2026)"
 WAKE = os.environ.get(
     "WAKE_BASE",
     "https://maps.wake.gov/arcgis/rest/services/Inspections/RestaurantInspectionsOpenData/MapServer")
+# overpass.kumi.systems was renamed overpass.private.coffee (OSM wiki, Overpass_API#Public_Overpass_API_instances)
 OVERPASS = os.environ.get(
     "OVERPASS_ENDPOINTS",
-    "https://overpass-api.de/api/interpreter https://overpass.kumi.systems/api/interpreter "
-    "https://overpass.private.coffee/api/interpreter").split()
+    "https://overpass-api.de/api/interpreter https://overpass.private.coffee/api/interpreter "
+    "https://maps.mail.ru/osm/tools/overpass/api/interpreter").split()
+OVERPASS_TIMEOUT = int(os.environ.get("OVERPASS_TIMEOUT", 50))   # seconds per attempt
 LEAFLET = os.environ.get("LEAFLET_BASE", "https://unpkg.com/leaflet@1.9.4/dist")
 PAGE = int(os.environ.get("ARCGIS_PAGE", 1000))     # rows requested per ArcGIS page
 BATCH = 150                                          # facilities per inspections/violations query
-PARTS = {"osm", "wake", "inspections", "violations", "vendor"}
+PARTS = {"osm", "places", "wake", "inspections", "violations", "vendor"}
 LAYERS = {   # name -> (ArcGIS layer id, fields to request)
     "inspections": (1, "*"),
     "violations": (2, "OBJECTID,HSISID,INSPECTDATE,SEVERITY,POINTVALUE,SHORTDESC,CATEGORY,VIOLATIONTYPE"),
@@ -117,23 +129,19 @@ def save(path, obj):
 
 def load_cached(path):
     try:
-        return json.loads(path.read_text(encoding="utf-8"))
+        return json.loads(Path(path).read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return None
 
 
 # --------------------------------------------------------------------------- sources
-def fetch_osm():
-    r = CACHE_RADIUS_M
-    query = (f"[out:json][timeout:25];\n(\n"
-             f"  nwr[\"diet:gluten_free\"](around:{r},{LAT},{LON});\n"
-             f"  nwr[\"gluten_free\"](around:{r},{LAT},{LON});\n"
-             f");\nout center tags;")
+def overpass(query):
+    """Run an Overpass query, trying every public server with growing pauses between rounds."""
     wait = 5
     for rnd in range(1, 5):
         for ep in OVERPASS:
             try:
-                code, body = curl(ep, {"data": query}, timeout=60)
+                code, body = curl(ep, {"data": query}, timeout=OVERPASS_TIMEOUT)
             except RuntimeError as e:
                 log(f"  round {rnd}: {ep}: {e}")
                 continue
@@ -153,8 +161,30 @@ def fetch_osm():
             log(f"  all endpoints failed; waiting {wait}s")
             time.sleep(wait)
             wait *= 2
-    raise SystemExit("Overpass failed on every endpoint. Wait a few minutes and rerun; "
-                     "finished parts are cached and will not be repeated.")
+    raise SystemExit(
+        "Overpass failed on every server. Public Overpass is often overloaded and conference wifi shares one IP.\n"
+        "Try: wait a few minutes and rerun (finished parts are cached), or use a phone hotspot, or run the\n"
+        "query at overpass-turbo.eu, export raw JSON, and load it with:  python3 fetch_data.py --osm-file x.json")
+
+
+def fetch_osm():
+    r = CACHE_RADIUS_M
+    return overpass(f"[out:json][timeout:25];\n(\n"
+                    f"  nwr[\"diet:gluten_free\"](around:{r},{LAT},{LON});\n"
+                    f"  nwr[\"gluten_free\"](around:{r},{LAT},{LON});\n"
+                    f");\nout center tags;")
+
+
+def fetch_places():
+    """OSM food places that list a website (bounding-box query: cheaper for Overpass than `around`)."""
+    dlat = CACHE_RADIUS_M / 111320.0
+    dlon = CACHE_RADIUS_M / (111320.0 * math.cos(math.radians(LAT)))
+    box = f"{LAT - dlat:.5f},{LON - dlon:.5f},{LAT + dlat:.5f},{LON + dlon:.5f}"
+    kinds = "^(restaurant|cafe|fast_food|pub|bar|food_court)$"
+    return overpass(f"[out:json][timeout:60];\n(\n"
+                    f"  nwr[\"amenity\"~\"{kinds}\"][\"website\"]({box});\n"
+                    f"  nwr[\"amenity\"~\"{kinds}\"][\"contact:website\"]({box});\n"
+                    f");\nout center tags;")
 
 
 def arcgis_query(layer, params, out_fields="*"):
@@ -252,6 +282,8 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--refresh", nargs="?", const="all", metavar="PARTS",
                     help="re-download 'all' or a comma list of: " + ", ".join(sorted(PARTS)))
+    ap.add_argument("--places", action="store_true", help="also fetch OSM restaurants with websites")
+    ap.add_argument("--osm-file", metavar="FILE", help="use a saved Overpass JSON export as osm.json")
     ap.add_argument("--all-facilities", action="store_true",
                     help="fetch inspections/violations for every county restaurant in the radius")
     ap.add_argument("--status", action="store_true", help="show what is cached and exit")
@@ -282,16 +314,35 @@ def main():
         save(DATA / "manifest.json", manifest)
 
     # 1) OpenStreetMap gluten-free tags
-    osm = None if "osm" in refresh else load_cached(DATA / "osm.json")
-    if osm is None:
-        log("OpenStreetMap (Overpass) ...")
-        osm = fetch_osm()
+    if args.osm_file:
+        osm = load_cached(args.osm_file)
+        if not isinstance(osm, dict) or not isinstance(osm.get("elements"), list):
+            sys.exit("--osm-file must be an Overpass JSON export (a JSON object with an 'elements' list)")
         save(DATA / "osm.json", osm)
-        stamp("osm", f"{len(osm.get('elements', []))} elements")
+        stamp("osm", f"{len(osm['elements'])} elements (imported from {Path(args.osm_file).name})")
+        log(f"OpenStreetMap: imported {len(osm['elements'])} elements from {args.osm_file}")
     else:
-        log("OpenStreetMap: cached")
+        osm = None if "osm" in refresh else load_cached(DATA / "osm.json")
+        if osm is None:
+            log("OpenStreetMap gluten-free tags (Overpass) ...")
+            osm = fetch_osm()
+            save(DATA / "osm.json", osm)
+            stamp("osm", f"{len(osm.get('elements', []))} elements")
+        else:
+            log("OpenStreetMap gluten-free tags: cached")
 
-    # 2) Wake County restaurants
+    # 2) Optional: OSM restaurants that list a website (menu URL candidates)
+    if args.places or "places" in refresh:
+        places = None if "places" in refresh else load_cached(DATA / "places.json")
+        if places is None:
+            log("OpenStreetMap restaurants with websites (Overpass) ...")
+            places = fetch_places()
+            save(DATA / "places.json", places)
+            stamp("places", f"{len(places.get('elements', []))} elements")
+        else:
+            log("OpenStreetMap restaurants with websites: cached")
+
+    # 3) Wake County restaurants
     wake = None if "wake" in refresh else load_cached(DATA / "wake.json")
     if wake is None:
         log("Wake County restaurants ...")
@@ -301,15 +352,15 @@ def main():
     else:
         log("Wake County restaurants: cached")
 
-    # 3) Which facilities need inspection history?
+    # 4) Which facilities need inspection history?
     if args.all_facilities:
         ids = [f["attributes"].get("HSISID") for f in wake["features"]]
+        needed = {str(i): i for i in ids if i not in (None, "")}
     else:
-        ids = [m["hsisid"] for m in gf_map.match_places(osm, wake, verbose=True)]
-    needed = {str(i): i for i in ids if i not in (None, "")}
+        needed = gf_map.needed_hsisids(osm, wake, gf_map.load_annotations())
     log(f"{len(needed)} facilities need inspection history")
 
-    # 4) Inspections + violations, fetched only for facilities not already cached
+    # 5) Inspections + violations, fetched only for facilities not already cached
     for name, (layer, fields) in LAYERS.items():
         path = DATA / f"{name}.json"
         cached = None if name in refresh else load_cached(path)
@@ -326,9 +377,8 @@ def main():
         manifest["queried"][name] = sorted(done | set(needed))
         stamp(name, f"{len(merged['features'])} rows / {len(manifest['queried'][name])} facilities")
 
-    # 5) Leaflet, so the map page needs no CDN
-    vendor_ok = fetch_vendor("vendor" in refresh)
-    if vendor_ok:
+    # 6) Leaflet, so the map page needs no CDN
+    if fetch_vendor("vendor" in refresh):
         stamp("vendor", "leaflet 1.9.4")
 
     log("\nDone. Cached in " + str(DATA))

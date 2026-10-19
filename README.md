@@ -18,6 +18,10 @@ Our project:
 * 4:15 Winners announced
 * 7:30 Happy Hour at Sitti
 
+Submit here:
+
+* <https://www.mlh.com/events/hacktoberfest-hacks-all-things-open>
+
 ### MLH: Rewards
 
 * 1st Place
