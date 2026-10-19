@@ -8,6 +8,11 @@ health-inspection results. Every gluten-free claim shows its evidence and whethe
 
 <https://rippy.github.io/ato_mlh_2026/scripts/map.html>
 
+## Data Sources
+
+- Raleigh Open Data Restaurants and Inspections: https://data-ral.opendata.arcgis.com/
+- Open Street Map: https://www.openstreetmap.org/#map=4/38.01/-95.84
+
 ## The problem
 
 Allergy-friendly food is hard to find, and the open data doesn't help:
@@ -130,12 +135,12 @@ with cross-contact notes), 16 checked with nothing found, the rest not yet revie
 
 ### Pin colours
 
-| Colour | Meaning |
-|---|---|
-| Green | Score >= 90 and 0 violations in the last 12 months |
-| Amber | Mixed |
-| Red | Score < 80 |
-| Gray | No inspection data |
+| Colour | Meaning                                            |
+| ------ | -------------------------------------------------- |
+| Green  | Score >= 90 and 0 violations in the last 12 months |
+| Amber  | Mixed                                              |
+| Red    | Score < 80                                         |
+| Gray   | No inspection data                                 |
 
 Solid outline = human-verified. Dashed outline = unverified.
 
@@ -183,16 +188,16 @@ endpoint, e.g. a local Ollama model via `LLM_BASE`).
 
 ## Repository layout
 
-| Path | What it does |
-|---|---|
-| `scripts/fetch_data.py` | Downloads and caches OSM, Wake County and Leaflet data |
-| `scripts/annotate.py` | Find, add, seed and list rows in `annotations.csv` |
-| `scripts/enrich_menu.py` | Reads restaurant websites and proposes `gf_status` with a quote |
-| `scripts/verify_ui.py` | Local web UI for human verification |
-| `scripts/gf_map.py` | Joins everything and writes `map.html` |
+| Path                      | What it does                                                           |
+| ------------------------- | ---------------------------------------------------------------------- |
+| `scripts/fetch_data.py`   | Downloads and caches OSM, Wake County and Leaflet data                 |
+| `scripts/annotate.py`     | Find, add, seed and list rows in `annotations.csv`                     |
+| `scripts/enrich_menu.py`  | Reads restaurant websites and proposes `gf_status` with a quote        |
+| `scripts/verify_ui.py`    | Local web UI for human verification                                    |
+| `scripts/gf_map.py`       | Joins everything and writes `map.html`                                 |
 | `scripts/annotations.csv` | The gluten-free claims: status, evidence URL, quote, who checked, when |
-| `docs/EVENT_NOTES.md` | Raw notes from the day |
-| `HANDOFF.md` | What worked, what didn't, and the demo story |
+| `docs/EVENT_NOTES.md`     | Raw notes from the day                                                 |
+| `HANDOFF.md`              | What worked, what didn't, and the demo story                           |
 
 ## What's next
 
