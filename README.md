@@ -33,15 +33,10 @@ flowchart TD
 
     OVP -->|"places with a diet:gluten_free tag<br/>(only 1 within 8 km)"| OSMJ["data/osm.json"]
     OVP -->|"restaurants + cafes with a website tag<br/>(fetch_data.py --places)"| PLJ["data/places.json"]
-    ARC -->|"layer 0: permitted food places<br/>~430 within 3 km"| WKJ["data/wake.json"]
+    ARC -->|"layer 0: permitted food places<br/>~430 within 3 km<br/>(HSISID = join key for all 3 layers)"| WKJ["data/wake.json"]
     ARC -->|"layer 1: inspection scores + dates<br/>only for places with a claim"| INJ["data/inspections.json"]
     ARC -->|"layer 2: violations, last 12 months<br/>only for places with a claim"| VIJ["data/violations.json"]
     UNP --> VEN["data/vendor/<br/>leaflet.js, leaflet.css"]
-
-    HS(["HSISID = the join key<br/>across all three county layers"])
-    WKJ --- HS
-    INJ --- HS
-    VIJ --- HS
 
     PLJ -->|"website URLs"| SEED["annotate.py seed<br/>pre-fills evidence_url"]
     SEED --> ANN[("annotations.csv")]
@@ -64,13 +59,12 @@ flowchart TD
     FETCH --> LLM["Backend: claude / apfel / openai<br/>model must quote the page"]
 
     LLM --> CHK{"Quote appears word<br/>for word on the page?"}
-    CHK -->|no| UNK["unknown<br/>answer thrown away"]
+    CHK -->|no| UNK["unknown, verified = no<br/>answer thrown away"]
     CHK -->|yes| MACH
-    RULES --> MACH["Machine claim: yes / limited / unknown<br/>always written verified = no"]
-    UNK --> MACH2["unknown, verified = no"]
+    RULES --> MACH["Machine claim: yes / limited<br/>always written verified = no"]
 
     MACH --> UI["verify_ui.py (human)<br/>quote highlighted on the live page<br/>+ link to open it yourself"]
-    MACH2 -->|"JS-only, blocked, or bad quote"| UI2["verify_ui.py ?mode=failed<br/>human reads the site,<br/>pastes the exact quote"]
+    UNK -->|"JS-only, blocked, or bad quote"| UI2["verify_ui.py ?mode=failed<br/>human reads the site,<br/>pastes the exact quote"]
 
     UI -->|"Confirm"| HYES["verified = yes<br/>checked_by = human:name"]
     UI -->|"Reject"| HNO["gf_status = no<br/>verified = yes<br/>original quote kept in note"]
